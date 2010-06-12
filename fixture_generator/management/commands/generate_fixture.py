@@ -42,19 +42,16 @@ class FixtureRouter(object):
         self.models = models
     
     def db_for_read(self, model, instance=None, **hints):
-        if model in self.models:
-            return FIXTURE_DATABASE
+        return FIXTURE_DATABASE
     
     def db_for_write(self, model, instance=None, **hints):
-        if model in self.models:
-            return FIXTURE_DATABASE
+        return FIXTURE_DATABASE
     
     def allow_relation(self, *args, **kwargs):
         return True
     
     def allow_syncdb(self, db, model):
-        if db == FIXTURE_DATABASE:
-            return model in self.models
+        return True
 
 
 class Command(BaseCommand):
