@@ -1,0 +1,1 @@
+from fixture_generator.fixture_gen import fixture_generator
