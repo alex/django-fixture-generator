@@ -6,3 +6,5 @@
  * Add functions, decorate with ``fixture_generator.fixture_generator``
  * Run ``manage.py generate_fixture app_label.fixture_function``.
  * Profit.
+
+Requires Django 1.2.

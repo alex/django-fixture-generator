@@ -12,7 +12,7 @@ f.close()
 setup(
     name='django-fixture-generator',
     version=".".join(map(str, VERSION)),
-    description='django-fixutre-generator is a reusable django application to make writing fixtures not suck.',
+    description='django-fixture-generator is a reusable django application to make writing fixtures not suck.',
     long_description=readme,
     author='Alex Gaynor',
     author_email='alex.gaynor@gmail.com',
