@@ -9,7 +9,6 @@ if not settings.configured:
     settings.configure(
         DATABASE_ENGINE="sqlite3",
         INSTALLED_APPS=[
-            "django.contrib.contenttypes",
             "fixture_generator",
             "fixture_generator.tests",
         ]
