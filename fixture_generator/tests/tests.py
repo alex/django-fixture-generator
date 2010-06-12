@@ -1,7 +1,12 @@
+import sys
+from StringIO import StringIO
+
+from django.core.management import call_command
 from django.test import TestCase
 
 from fixture_generator import fixture_generator
 from fixture_generator.management.commands.generate_fixture import linearize_requirements
+
 
 @fixture_generator()
 def test_func_1():
@@ -44,3 +49,14 @@ class LinearizeRequirementsTests(TestCase):
             requirements,
             [test_func_5, test_func_3, test_func_4, test_func_2]
         )
+
+class ManagementCommandTests(TestCase):
+    def test_basic(self):
+        sys.stdout = StringIO()
+        stuff = call_command("generate_fixture", "tests.test_1")
+        output = sys.stdout.getvalue()
+        sys.stdout = sys.__stdout__
+        
+        self.assertEqual(output, "")
+        self.assertEqual(stuff, "")
+        assert False

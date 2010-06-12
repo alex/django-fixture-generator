@@ -1,3 +1,4 @@
+import os
 from optparse import make_option
 
 from django.core.management import BaseCommand, call_command
@@ -97,3 +98,4 @@ class Command(BaseCommand):
         finally:
             del settings.DATABASES["__fixture_gen__"]
             router.routers = old_routers
+            os.remove("fixture_gen.db")
