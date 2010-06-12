@@ -41,11 +41,13 @@ class FixtureRouter(object):
     def __init__(self, models):
         self.models = models
     
-    def db_for_read(self, *args, **kwargs):
-        return FIXTURE_DATABASE
+    def db_for_read(self, model, instance=None, **hints):
+        if model in self.models:
+            return FIXTURE_DATABASE
     
-    def db_for_write(self, *args, **kwargs):
-        return FIXTURE_DATABASE
+    def db_for_write(self, model, instance=None, **hints):
+        if model in self.models:
+            return FIXTURE_DATABASE
     
     def allow_relation(self, *args, **kwargs):
         return True
@@ -88,12 +90,12 @@ class Command(BaseCommand):
         old_routers = router.routers
         router.routers = [FixtureRouter(models)]
         try:
-            call_command("syncdb", db=FIXTURE_DATABASE)
+            call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0)
             for fixture_func in requirements:
                 fixture_func()
             call_command("dumpdata",
                 *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
-                **dict(options, verbosity=0, db=FIXTURE_DATABASE)
+                **dict(options, verbosity=0, database=FIXTURE_DATABASE)
             )
         finally:
             del settings.DATABASES["__fixture_gen__"]

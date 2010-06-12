@@ -54,9 +54,7 @@ class ManagementCommandTests(TestCase):
     def test_basic(self):
         sys.stdout = StringIO()
         stuff = call_command("generate_fixture", "tests.test_1")
-        output = sys.stdout.getvalue()
+        output = sys.stdout.getvalue().strip()
         sys.stdout = sys.__stdout__
         
-        self.assertEqual(output, "")
-        self.assertEqual(stuff, "")
-        assert False
+        self.assertEqual(output, """[{"pk": 1, "model": "tests.author", "fields": {"name": "Tom Clancy"}}, {"pk": 2, "model": "tests.author", "fields": {"name": "Daniel Pinkwater"}}]""")
