@@ -95,6 +95,6 @@ class Command(BaseCommand):
                 **dict(options, verbosity=0, database=FIXTURE_DATABASE)
             )
         finally:
-            del settings.DATABASES["__fixture_gen__"]
+            del settings.DATABASES[FIXTURE_DATABASE]
             router.routers = old_routers
             os.remove("fixture_gen.db")
