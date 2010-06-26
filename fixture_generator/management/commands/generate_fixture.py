@@ -3,7 +3,7 @@ from optparse import make_option
 
 from django.core.management import BaseCommand, call_command
 from django.conf import settings
-from django.db import router
+from django.db import router, connections
 from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
 
@@ -87,7 +87,8 @@ class Command(BaseCommand):
         old_routers = router.routers
         router.routers = [FixtureRouter(models)]
         try:
-            call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0)
+            call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0,
+                interactive=False)
             for fixture_func in requirements:
                 fixture_func()
             call_command("dumpdata",
@@ -96,5 +97,6 @@ class Command(BaseCommand):
             )
         finally:
             del settings.DATABASES[FIXTURE_DATABASE]
+            del connections._connections[FIXTURE_DATABASE]
             router.routers = old_routers
             os.remove("fixture_gen.db")

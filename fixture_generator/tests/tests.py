@@ -66,10 +66,22 @@ class LinearizeRequirementsTests(TestCase):
 
 
 class ManagementCommandTests(TestCase):
-    def test_basic(self):
+    def generate_fixture(self, fixture):
         sys.stdout = StringIO()
-        stuff = call_command("generate_fixture", "tests.test_1")
-        output = sys.stdout.getvalue().strip()
-        sys.stdout = sys.__stdout__
-        
-        self.assertEqual(output, """[{"pk": 1, "model": "tests.author", "fields": {"name": "Tom Clancy"}}, {"pk": 2, "model": "tests.author", "fields": {"name": "Daniel Pinkwater"}}]""")
+        try:
+            call_command("generate_fixture", fixture)
+            output = sys.stdout.getvalue()
+        finally:
+            sys.stdout = sys.__stdout__
+        return output
+    
+    def test_basic(self):
+        output = self.generate_fixture("tests.test_1")
+        self.assertEqual(output, """[{"pk": 1, "model": "tests.author", "fields": {"name": "Tom Clancy"}}, {"pk": 2, "model": "tests.author", "fields": {"name": "Daniel Pinkwater"}}]\n""")
+    
+    def test_auth(self):
+        # All that we're checking for is that it doesn't hang on this call,
+        # which would happen if the auth post syncdb hook goes and prompts the
+        # user to create an account.
+        output = self.generate_fixture("tests.test_2")
+        self.assertEqual(output, "[]\n")
