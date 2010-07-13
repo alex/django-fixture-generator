@@ -87,8 +87,9 @@ class Command(BaseCommand):
         old_routers = router.routers
         router.routers = [FixtureRouter(models)]
         try:
+            # migrate_all=True is for south, Django just absorbs it
             call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0,
-                interactive=False)
+                interactive=False, migrate_all=True)
             for fixture_func in requirements:
                 fixture_func()
             call_command("dumpdata",
