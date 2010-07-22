@@ -47,13 +47,16 @@ class LinearizeRequirementsTests(TestCase):
         for fixture in fixtures:
             self.available_fixtures[("tests", fixture)] = globals()[fixture]
     
+    def linearize_requirements(self, test_func):
+        return linearize_requirements(self.available_fixtures, test_func)
+    
     def test_basic(self):
-        requirements, models = linearize_requirements(self.available_fixtures, test_func_1)
+        requirements, models = self.linearize_requirements(test_func_1)
         self.assertEqual(requirements, [test_func_1])
         self.assertEqual(models, set())
     
     def test_diamond(self):
-        requirements, models = linearize_requirements(self.available_fixtures, test_func_2)
+        requirements, models = self.linearize_requirements(test_func_2)
         self.assertEqual(
             requirements,
             [test_func_5, test_func_3, test_func_4, test_func_2]
@@ -67,12 +70,13 @@ class LinearizeRequirementsTests(TestCase):
 
 class ManagementCommandTests(TestCase):
     def generate_fixture(self, fixture):
+        out = sys.stdout
         sys.stdout = StringIO()
         try:
             call_command("generate_fixture", fixture)
             output = sys.stdout.getvalue()
         finally:
-            sys.stdout = sys.__stdout__
+            sys.stdout = out
         return output
     
     def test_basic(self):
