@@ -18,6 +18,7 @@ setup(
     author_email='alex.gaynor@gmail.com',
     url='http://github.com/alex/django-fixture-generator/tree/master',
     packages=find_packages(),
+    zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
