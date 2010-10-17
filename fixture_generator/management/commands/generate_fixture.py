@@ -117,8 +117,6 @@ class Command(BaseCommand):
                         *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
                         **dict(options, verbosity=0, database=alias)
                     )
-        except Exception, error:
-            print error
         finally:
             if not default_settings:
                 os.remove("fixture_gen.db")
