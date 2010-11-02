@@ -60,13 +60,13 @@ class Command(BaseCommand):
             help="Specifies the output serialization format for fixtures."),
         make_option("--indent", default=None, dest="indent", type="int",
             help="Specifies the indent level to use when pretty-printing output"),
-        make_option("--default", default=False, dest="default_settings", type="string", 
+        make_option("--default", action='store_true', default=False, dest="default_settings", 
             help="Use default settings for generating test database"),
     )
     args = "app_label.fixture"
     
     def handle(self, fixture, **options):
-        default_settings = options.get('default_settings', False)
+        default_settings = options.get('default_settings')
 
         available_fixtures = {}
         for app in settings.INSTALLED_APPS:
