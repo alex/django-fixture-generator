@@ -56,10 +56,12 @@ class FixtureRouter(object):
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("--format", default="json", dest="format",
+        make_option("-f", "--format", default="json", dest="format",
             help="Specifies the output serialization format for fixtures."),
-        make_option("--indent", default=None, dest="indent", type="int",
-            help="Specifies the indent level to use when pretty-printing output"),
+        make_option("-i", "--indent", default=None, dest="indent", type="int",
+            help="Specifies the indent level to use when pretty-printing output."),
+        make_option("-n", "--natural", action="store_true", dest="use_natural_keys", default=False,
+            help="Use natural keys if they are available."),            
     )
     args = "app_label.fixture"
     
