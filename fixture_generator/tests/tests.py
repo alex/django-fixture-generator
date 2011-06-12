@@ -53,7 +53,7 @@ class LinearizeRequirementsTests(TestCase):
     def test_basic(self):
         requirements, models = self.linearize_requirements(test_func_1)
         self.assertEqual(requirements, [test_func_1])
-        self.assertEqual(models, set())
+        self.assertEqual(models, [])
     
     def test_diamond(self):
         requirements, models = self.linearize_requirements(test_func_2)
@@ -81,11 +81,11 @@ class ManagementCommandTests(TestCase):
     
     def test_basic(self):
         output = self.generate_fixture("tests.test_1")
-        self.assertEqual(output, """[{"pk": 1, "model": "tests.author", "fields": {"name": "Tom Clancy"}}, {"pk": 2, "model": "tests.author", "fields": {"name": "Daniel Pinkwater"}}]\n""")
+        self.assertEqual(output, """[{"pk": 1, "model": "tests.author", "fields": {"name": "Tom Clancy"}}, {"pk": 2, "model": "tests.author", "fields": {"name": "Daniel Pinkwater"}}]""")
     
     def test_auth(self):
         # All that we're checking for is that it doesn't hang on this call,
         # which would happen if the auth post syncdb hook goes and prompts the
         # user to create an account.
         output = self.generate_fixture("tests.test_2")
-        self.assertEqual(output, "[]\n")
+        self.assertEqual(output, "[]")
