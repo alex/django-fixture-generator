@@ -19,8 +19,9 @@ class CircularDependencyError(Exception):
 def linearize_requirements(available_fixtures, fixture, seen=None):
     if seen is None:
         seen = set([fixture])
-    models = set(fixture.models)
     requirements = []
+    models = []
+
     for requirement in fixture.requires:
         app_label, fixture_name = requirement.rsplit(".", 1)
         fixture_func = available_fixtures[(app_label, fixture_name)]
@@ -32,7 +33,9 @@ def linearize_requirements(available_fixtures, fixture, seen=None):
             seen | set([fixture_func])
         )
         requirements.extend([req for req in r if req not in requirements])
-        models.update(m)
+        models.extend([model for model in m if model not in models])
+
+    models.extend([model for model in fixture.models if model not in models])
     requirements.append(fixture)
     return requirements, models
 
