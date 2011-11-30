@@ -63,10 +63,14 @@ class Command(BaseCommand):
             help="Specifies the output serialization format for fixtures."),
         make_option("--indent", default=None, dest="indent", type="int",
             help="Specifies the indent level to use when pretty-printing output"),
+        make_option("--default", action='store_true', default=False, dest="default_settings", 
+            help="Use default settings for generating test database"),
     )
     args = "app_label.fixture"
     
     def handle(self, fixture, **options):
+        default_settings = options.get('default_settings')
+
         available_fixtures = {}
         for app in settings.INSTALLED_APPS:
             try:
@@ -82,25 +86,46 @@ class Command(BaseCommand):
         fixture = available_fixtures[(app_label, fixture_name)]
         
         requirements, models = linearize_requirements(available_fixtures, fixture)
-        
-        settings.DATABASES[FIXTURE_DATABASE] = {
-            "ENGINE": "sqlite3",
-            "NAME": "fixture_gen.db",
-        }
-        old_routers = router.routers
-        router.routers = [FixtureRouter(models)]
+       
+        if not default_settings:
+            settings.DATABASES[FIXTURE_DATABASE] = {
+                "ENGINE": "sqlite3",
+                "NAME": "fixture_gen.db",
+            }
+            old_routers = router.routers
+            router.routers = [FixtureRouter(models)]
+ 
+        # Creates tests databases for populating them with the fixtures
+        elif default_settings:
+            from django.test.simple import DjangoTestSuiteRunner
+            self.test_runner = DjangoTestSuiteRunner(verbosity=0)
+            self.old_config = self.test_runner.setup_databases()
+            
         try:
             # migrate_all=True is for south, Django just absorbs it
-            call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0,
-                interactive=False, migrate_all=True)
+            # create_test_db already executes syncdb 
+            if not default_settings:
+                call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0,
+                    interactive=False, migrate_all=True)
             for fixture_func in requirements:
                 fixture_func()
-            call_command("dumpdata",
-                *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
-                **dict(options, verbosity=0, database=FIXTURE_DATABASE)
-            )
+            if not default_settings:
+                call_command("dumpdata",
+                    *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
+                    **dict(options, verbosity=0, database=FIXTURE_DATABASE)
+                )
+            else:
+                for alias in connections._connections:
+                    call_command("dumpdata",
+                        *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
+                        **dict(options, verbosity=0, database=alias)
+                    )
         finally:
-            del settings.DATABASES[FIXTURE_DATABASE]
-            del connections._connections[FIXTURE_DATABASE]
-            router.routers = old_routers
-            os.remove("fixture_gen.db")
+            if not default_settings:
+                os.remove("fixture_gen.db")
+                del settings.DATABASES[FIXTURE_DATABASE]
+                del connections._connections[FIXTURE_DATABASE]
+                router.routers = old_routers
+            elif default_settings:
+                self.test_runner.teardown_databases(self.old_config)
+
