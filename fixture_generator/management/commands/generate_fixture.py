@@ -109,6 +109,9 @@ class Command(BaseCommand):
             )
         finally:
             del settings.DATABASES[FIXTURE_DATABASE]
-            del connections._connections[FIXTURE_DATABASE]
+            if isinstance(connections._connections, dict):
+                del connections._connections[FIXTURE_DATABASE]
+            else:
+                delattr(connections._connections, FIXTURE_DATABASE)
             router.routers = old_routers
             os.remove("fixture_gen.db")
