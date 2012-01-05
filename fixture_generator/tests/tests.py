@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 import sys
 from StringIO import StringIO
 
@@ -70,22 +68,16 @@ class LinearizeRequirementsTests(TestCase):
         )
 
 
-class NullContextManager(object):
-    def __enter__(self):
-        pass
-    def __exit__(self, *args):
-        pass
-
 class ManagementCommandTests(TestCase):
     def generate_fixture(self, fixture, error=False):
         stdout = StringIO()
         stderr = StringIO()
+        run = lambda: call_command("generate_fixture", fixture, stdout=stdout, stderr=stderr)
+
         if error:
-            cm = self.assertRaises(SystemExit)
+            self.assertRaises(SystemExit, run)
         else:
-            cm = NullContextManager()
-        with cm:
-            call_command("generate_fixture", fixture, stdout=stdout, stderr=stderr)
+            run()
         return stdout.getvalue(), stderr.getvalue()
 
     def test_basic(self):
