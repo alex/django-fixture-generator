@@ -2,6 +2,7 @@ import os
 from optparse import make_option
 
 from django.core.management import BaseCommand, call_command, CommandError
+from django.core.management.commands.dumpdata import Command as DumpDataCommand
 from django.conf import settings
 from django.db import router, connections
 from django.utils.importlib import import_module
@@ -58,14 +59,7 @@ class FixtureRouter(object):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("--format", default="json", dest="format",
-            help="Specifies the output serialization format for fixtures."),
-        make_option("--indent", default=None, dest="indent", type="int",
-            help="Specifies the indent level to use when pretty-printing output"),
-        make_option('-a', '--all', action='store_true', dest='use_base_manager', default=False,
-            help="Use Django's base manager to dump all models stored in the database, including those that would otherwise be filtered or modified by a custom manager."),
-    )
+    option_list = DumpDataCommand.option_list
     args = "app_label.fixture"
 
     def handle(self, fixture, **options):
