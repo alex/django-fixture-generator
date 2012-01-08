@@ -1,6 +1,7 @@
 import sys
 from StringIO import StringIO
 
+import django
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -93,6 +94,8 @@ class ManagementCommandTests(TestCase):
         self.assertEqual(output, "[]")
 
     def test_all(self):
+        if django.VERSION < (1, 3):
+            return
         output, _ = self.generate_fixture("tests.test_3", use_base_manager=True)
         self.assertEqual(output, """[{"pk": 1, "model": "tests.entry", "fields": {"public": true}}, {"pk": 2, "model": "tests.entry", "fields": {"public": false}}]""")
 
