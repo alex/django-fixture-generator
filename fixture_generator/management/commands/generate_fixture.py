@@ -63,6 +63,8 @@ class Command(BaseCommand):
             help="Specifies the output serialization format for fixtures."),
         make_option("--indent", default=None, dest="indent", type="int",
             help="Specifies the indent level to use when pretty-printing output"),
+        make_option('-a', '--all', action='store_true', dest='use_base_manager', default=False,
+            help="Use Django's base manager to dump all models stored in the database, including those that would otherwise be filtered or modified by a custom manager."),
     )
     args = "app_label.fixture"
 
@@ -93,7 +95,7 @@ class Command(BaseCommand):
 
         settings.DATABASES[FIXTURE_DATABASE] = {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "fixture_gen.db",
+            "NAME": ":memory:",
         }
         old_routers = router.routers
         router.routers = [FixtureRouter(models)]
@@ -114,4 +116,3 @@ class Command(BaseCommand):
             else:
                 delattr(connections._connections, FIXTURE_DATABASE)
             router.routers = old_routers
-            os.remove("fixture_gen.db")

@@ -69,12 +69,13 @@ class LinearizeRequirementsTests(TestCase):
 
 
 class ManagementCommandTests(TestCase):
-    def generate_fixture(self, fixture, error=False):
+    def generate_fixture(self, fixture, error=False, **kwargs):
         stdout = StringIO()
         stderr = StringIO()
-        run = lambda: call_command("generate_fixture", fixture, stdout=stdout, stderr=stderr)
+        run = lambda: call_command("generate_fixture", fixture, stdout=stdout, stderr=stderr, **kwargs)
 
         if error:
+            # CommandError gets turned into SystemExit
             self.assertRaises(SystemExit, run)
         else:
             run()
@@ -90,6 +91,10 @@ class ManagementCommandTests(TestCase):
         # user to create an account.
         output, _ = self.generate_fixture("tests.test_2")
         self.assertEqual(output, "[]")
+
+    def test_all(self):
+        output, _ = self.generate_fixture("tests.test_3", use_base_manager=True)
+        self.assertEqual(output, """[{"pk": 1, "model": "tests.entry", "fields": {"public": true}}, {"pk": 2, "model": "tests.entry", "fields": {"public": false}}]""")
 
     def test_nonexistant(self):
         out, err = self.generate_fixture("tests.test_255", error=True)
