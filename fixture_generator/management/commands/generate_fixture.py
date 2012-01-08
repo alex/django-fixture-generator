@@ -59,7 +59,10 @@ class FixtureRouter(object):
 
 
 class Command(BaseCommand):
-    option_list = DumpDataCommand.option_list
+    option_list = tuple(
+        opt for opt in DumpDataCommand.option_list
+        if "--database" not in opt._long_opts and "--exclude" not in opt._long_opts
+    )
     args = "app_label.fixture"
 
     def handle(self, fixture, **options):
