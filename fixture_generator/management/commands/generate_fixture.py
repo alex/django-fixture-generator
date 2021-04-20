@@ -122,7 +122,6 @@ class Command(BaseCommand):
         finally:
             del settings.DATABASES[FIXTURE_DATABASE]
             if isinstance(connections._connections, dict):
-                connections._connections[FIXTURE_DATABASE]
                 del connections._connections[FIXTURE_DATABASE]
             else:
                 delattr(connections._connections, FIXTURE_DATABASE)
