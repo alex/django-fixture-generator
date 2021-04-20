@@ -1,21 +1,28 @@
 import os
 from optparse import make_option
 
-from django.core.management import BaseCommand, call_command, CommandError
-from django.core.management.commands.dumpdata import Command as DumpDataCommand
+from django.core.management import BaseCommand, call_command
 from django.conf import settings
 from django.db import router, connections
-from django.utils.importlib import import_module
+
+try:
+    # Django versions >= 1.9
+    from django.utils.module_loading import import_module
+except ImportError:
+    # Django versions < 1.9
+    from django.utils.importlib import import_module
+
 from django.utils.module_loading import module_has_submodule
 
-
 FIXTURE_DATABASE = "__fixture_gen__"
+
 
 class CircularDependencyError(Exception):
     """
     Raised when there is a circular dependency in fixture requirements.
     """
     pass
+
 
 def linearize_requirements(available_fixtures, fixture, seen=None):
     if seen is None:
@@ -59,20 +66,25 @@ class FixtureRouter(object):
 
 
 class Command(BaseCommand):
-    option_list = tuple(
-        opt for opt in DumpDataCommand.option_list
-        if "--database" not in opt._long_opts and "--exclude" not in opt._long_opts
-    )
-    args = "app_label.fixture"
+    def add_arguments(self, parser):
+        parser.add_argument('fixture', type=str,
+                            help='Indicates the fixture_gen app_name.method that you would like to generate')
+        parser.add_argument("--format", default="json", dest="format",
+                            help="Specifies the output serialization format for fixtures.")
+        parser.add_argument("--indent", default=None, dest="indent", type=int,
+                            help="Specifies the indent level to use when pretty-printing output")
 
-    def handle(self, fixture, **options):
+    def handle(self, *args, **options):
+        fixture = options['fixture']
+        format = options['format']
+        indent = options['indent']
         available_fixtures = {}
         for app in settings.INSTALLED_APPS:
             try:
                 fixture_gen = import_module(".fixture_gen", app)
             except ImportError:
                 if module_has_submodule(import_module(app), "fixture_gen"):
-                   raise
+                    raise
                 continue
             for obj in fixture_gen.__dict__.values():
                 if getattr(obj, "__fixture_gen__", False):
@@ -86,7 +98,7 @@ class Command(BaseCommand):
                 for app_label, fixture_name in available_fixtures
             )
             raise CommandError("Fixture generator '%s' not found, available "
-                "choices: %s" % (fixture, available))
+                               "choices: %s" % (fixture, available))
 
         requirements, models = linearize_requirements(available_fixtures, fixture)
 
@@ -94,18 +106,19 @@ class Command(BaseCommand):
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": ":memory:",
         }
+
         old_routers = router.routers
         router.routers = [FixtureRouter(models)]
+
         try:
-            # migrate_all=True is for south, Django just absorbs it
-            call_command("syncdb", database=FIXTURE_DATABASE, verbosity=0,
-                interactive=False, migrate_all=True)
+            call_command("migrate", database=FIXTURE_DATABASE, verbosity=0,
+                         interactive=False)
             for fixture_func in requirements:
                 fixture_func()
             call_command("dumpdata",
-                *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
-                **dict(options, verbosity=0, database=FIXTURE_DATABASE)
-            )
+                         *["%s.%s" % (m._meta.app_label, m._meta.object_name) for m in models],
+                         **dict(format=format, indent=indent, verbosity=0, database=FIXTURE_DATABASE)
+                         )
         finally:
             del settings.DATABASES[FIXTURE_DATABASE]
             if isinstance(connections._connections, dict):
